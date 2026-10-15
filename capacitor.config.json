@@ -1,0 +1,10 @@
+{
+  "appId": "com.fazenda.dnf42",
+  "appName": "42 DNF",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#000000"
+  }
+}
