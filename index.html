@@ -35,9 +35,41 @@
   <div id="container">
     <canvas id="game"></canvas>
   </div>
-  <script type="module">
-    import { iniciarJogo } from './src/main.js';
-    window.addEventListener('load', () => iniciarJogo());
-  </script>
+  <script>
+  function mostrarErroNaTela(titulo, detalhe) {
+    const canvas = document.getElementById('game');
+    if (!canvas) return;
+    canvas.width = 1280;
+    canvas.height = 720;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#f00';
+    ctx.font = 'bold 22px monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    const msg = titulo + '\n\n' + detalhe;
+    const linhas = msg.split('\n');
+    for (let i = 0; i < linhas.length && i < 26; i++) {
+      ctx.fillText(linhas[i].substring(0, 65), 20, 30 + i * 26);
+    }
+  }
+
+  window.addEventListener('error', (e) => {
+    mostrarErroNaTela('ERRO GERAL', e.message + '\n' + (e.filename || '') + ':' + (e.lineno || ''));
+  });
+
+  window.addEventListener('unhandledrejection', (e) => {
+    mostrarErroNaTela('PROMESSA NAO TRATADA', (e.reason && e.reason.message) || String(e.reason));
+  });
+
+  window.addEventListener('load', () => {
+    import('./src/main.js')
+      .then((mod) => mod.iniciarJogo())
+      .catch((err) => {
+        mostrarErroNaTela('ERRO NO IMPORT', err.message + '\n\n' + (err.stack || ''));
+      });
+  });
+</script>
 </body>
 </html>
