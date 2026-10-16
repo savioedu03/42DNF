@@ -35,41 +35,68 @@
   <div id="container">
     <canvas id="game"></canvas>
   </div>
-  <script>
-  function mostrarErroNaTela(titulo, detalhe) {
+  <script type="module">
     const canvas = document.getElementById('game');
-    if (!canvas) return;
     canvas.width = 1280;
     canvas.height = 720;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#f00';
-    ctx.font = 'bold 22px monospace';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    const msg = titulo + '\n\n' + detalhe;
-    const linhas = msg.split('\n');
-    for (let i = 0; i < linhas.length && i < 26; i++) {
-      ctx.fillText(linhas[i].substring(0, 65), 20, 30 + i * 26);
+
+    function limpar() {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
-  }
 
-  window.addEventListener('error', (e) => {
-    mostrarErroNaTela('ERRO GERAL', e.message + '\n' + (e.filename || '') + ':' + (e.lineno || ''));
-  });
+    function escrever(txt, cor = '#0f0') {
+      ctx.fillStyle = cor;
+      ctx.font = 'bold 20px monospace';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      const linhas = String(txt).split('\n');
+      for (let i = 0; i < linhas.length && i < 30; i++) {
+        ctx.fillText(linhas[i].substring(0, 70), 20, 30 + i * 26);
+      }
+    }
 
-  window.addEventListener('unhandledrejection', (e) => {
-    mostrarErroNaTela('PROMESSA NAO TRATADA', (e.reason && e.reason.message) || String(e.reason));
-  });
+    const arquivos = [
+      './src/config.js',
+      './src/paleta.js',
+      './src/player_m_baixo.js',
+      './src/player_m_cima.js',
+      './src/player_m_lado.js',
+      './src/player_f_baixo.js',
+      './src/player_f_cima.js',
+      './src/player_f_lado.js',
+      './src/player.js',
+      './src/input.js',
+      './src/colisao.js',
+      './src/main.js',
+    ];
 
-  window.addEventListener('load', () => {
-    import('./src/main.js')
-      .then((mod) => mod.iniciarJogo())
-      .catch((err) => {
-        mostrarErroNaTela('ERRO NO IMPORT', err.message + '\n\n' + (err.stack || ''));
-      });
-  });
-</script>
+    (async () => {
+      let y = 30;
+      for (const arq of arquivos) {
+        try {
+          await import(arq);
+          ctx.fillStyle = '#0f0';
+          ctx.font = 'bold 20px monospace';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          ctx.fillText('OK   ' + arq, 20, y);
+          y += 26;
+        } catch (e) {
+          ctx.fillStyle = '#f00';
+          ctx.font = 'bold 20px monospace';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          ctx.fillText('X    ' + arq, 20, y);
+          y += 26;
+          ctx.fillText('     ' + e.message, 20, y);
+          y += 26;
+          ctx.fillText('     ' + (e.stack || '').substring(0, 70), 20, y);
+          y += 40;
+        }
+      }
+    })();
+  </script>
 </body>
 </html>
