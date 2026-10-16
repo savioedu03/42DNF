@@ -1,3 +1,6 @@
+// ============================================================================
+// 42 DNF - Bootstrapper com tratamento de erro visivel
+// ============================================================================
 import {
   CANVAS_LARGURA, CANVAS_ALTURA,
   CANVAS_LARGURA_REAL, CANVAS_ALTURA_REAL,
@@ -22,24 +25,43 @@ let canvas, ctx;
 let ultimoTempo = 0;
 let player, input;
 
+function mostrarErro(msg) {
+  if (!ctx) return;
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#f00';
+  ctx.font = 'bold 28px monospace';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+
+  const linhas = String(msg).split('\n');
+  for (let i = 0; i < linhas.length; i++) {
+    ctx.fillText(linhas[i], 20, 40 + i * 32);
+  }
+}
+
 export function iniciarJogo() {
-  canvas = document.getElementById('game');
-  if (!canvas) throw new Error('Canvas #game nao encontrado');
+  try {
+    canvas = document.getElementById('game');
+    if (!canvas) throw new Error('Canvas #game nao encontrado');
 
-  canvas.width = CANVAS_LARGURA_REAL;
-  canvas.height = CANVAS_ALTURA_REAL;
+    canvas.width = CANVAS_LARGURA_REAL;
+    canvas.height = CANVAS_ALTURA_REAL;
 
-  ctx = canvas.getContext('2d');
-  ctx.imageSmoothingEnabled = false;
+    ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
 
-  ajustarTamanho();
-  window.addEventListener('resize', ajustarTamanho);
+    ajustarTamanho();
+    window.addEventListener('resize', ajustarTamanho);
 
-  player = new Player('menino', Math.floor(CANVAS_LARGURA / 2) - 8, Math.floor(CANVAS_ALTURA / 2) - 11);
-  input = new Input();
+    player = new Player('menino', Math.floor(CANVAS_LARGURA / 2) - 8, Math.floor(CANVAS_ALTURA / 2) - 11);
+    input = new Input();
 
-  ultimoTempo = performance.now();
-  requestAnimationFrame(loop);
+    ultimoTempo = performance.now();
+    requestAnimationFrame(loop);
+  } catch (e) {
+    mostrarErro('ERRO:\n' + e.message + '\n\n' + (e.stack || ''));
+  }
 }
 
 function ajustarTamanho() {
@@ -58,16 +80,25 @@ function ajustarTamanho() {
 }
 
 function loop(tempo) {
-  const delta = Math.min(tempo - ultimoTempo, 50);
-  ultimoTempo = tempo;
+  try {
+    const delta = Math.min(tempo - ultimoTempo, 50);
+    ultimoTempo = tempo;
 
-  player.atualizar(delta, input);
+    player.atualizar(delta, input);
 
-  ctx.fillStyle = CORES.GRAMA;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = CORES.GRAMA;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  player.desenhar(ctx);
-  input.desenhar(ctx);
+    player.desenhar(ctx);
+    input.desenhar(ctx);
+  } catch (e) {
+    mostrarErro('ERRO NO LOOP:\n' + e.message + '\n\n' + (e.stack || ''));
+    return;
+  }
 
   requestAnimationFrame(loop);
 }
+
+window.addEventListener('error', (e) => {
+  mostrarErro('ERRO GLOBAL:\n' + e.message + '\n\n' + (e.filename || '') + ':' + (e.lineno || ''));
+});
